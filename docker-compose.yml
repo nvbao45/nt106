@@ -4,8 +4,8 @@ services:
     image: postgres:latest
     restart: always
     environment:
-      POSTGRES_USER: baonv
-      POSTGRES_PASSWORD: BaoNV123
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: api-dev
     volumes:
       - postgresql_data:/var/lib/postgresql/data
@@ -21,7 +21,7 @@ services:
       - ./app:/app/app/
     hostname: api-service
     environment:
-      - DATABASE_URI=postgresql://baonv:BaoNV123@postgresql/api-dev
+      - DATABASE_URI=postgresql://${DB_USER}:${DB_PASSWORD}@postgresql/api-dev
     ports:
       - 8000:8000
 
