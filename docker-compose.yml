@@ -1,0 +1,33 @@
+version: '3'
+services:
+  postgresql:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: baonv
+      POSTGRES_PASSWORD: BaoNV123
+      POSTGRES_DB: api-dev
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    ports:
+      - 5431:5432
+
+  api-service:
+    build:
+      context: ./
+    restart: always
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    volumes:
+      - ./app:/app/app/
+    hostname: api-service
+    environment:
+      - DATABASE_URI=postgresql://baonv:BaoNV123@postgresql/api-dev
+    ports:
+      - 8000:8000
+
+volumes:
+  postgresql_data:
+
+networks:
+  mynet:
+    driver: bridge
