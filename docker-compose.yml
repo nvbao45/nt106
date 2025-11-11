@@ -22,11 +22,33 @@ services:
     hostname: api-service
     environment:
       - DATABASE_URI=postgresql://${DB_USER}:${DB_PASSWORD}@postgresql/api-dev
+      - NEXT_JS_URL=http://ui-service:3000
     ports:
       - 8000:8000
+    depends_on:
+      postgresql:
+        condition: service_started
+
+  ui-service:
+    build:
+      context: ./
+      dockerfile: ui.Dockerfile
+    ports:
+      - 3000:3000
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   postgresql_data:
+  ui_node_modules:
+  ui_nextjs_cache:
 
 networks:
   mynet:

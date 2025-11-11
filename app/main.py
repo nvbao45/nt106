@@ -12,6 +12,7 @@ from app.db.repository.users import create_new_user
 from app.api.v1.auth import auth_router
 from app.api.v1.users import user_router
 from app.api.v1.monan import monan_router
+from app.ui_proxy import ui_router
 from app.db.session import engine, database, get_db
 from app.db.base_class import Base
 from app.core.config import settings
@@ -53,7 +54,6 @@ async def swagger_ui_redirect():
     return get_swagger_ui_oauth2_redirect_html()
 
 @app.get("/redoc", include_in_schema=False)
-@app.get("/", include_in_schema=False)
 async def redoc_html():
     return get_redoc_html(
         openapi_url=app.openapi_url,
@@ -105,3 +105,5 @@ app.openapi = custom_openapi
 app.include_router(auth_router, prefix=f"/auth", tags=["Authentication"])
 app.include_router(user_router, prefix=f"/api/{settings.VERSION}/user", tags=["User"])
 app.include_router(monan_router, prefix=f"/api/{settings.VERSION}/monan", tags=["Mon An"])
+# Catch-all UI proxy (must be last)
+app.include_router(ui_router, include_in_schema=False)
