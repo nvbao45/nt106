@@ -44,6 +44,45 @@ export const register = async (payload: {
   return data
 }
 
+export const getCurrentUser = async () => {
+  const { data } = await api.get('/api/v1/user/me')
+  return data
+}
+
+export const getUsers = async (current = 1, pageSize = 10) => {
+  const { data } = await api.post('/api/v1/user/all', { current, pageSize })
+  return data
+}
+
+export const getUser = async (userId: number) => {
+  const { data } = await api.get(`/api/v1/user/id/${userId}`)
+  return data
+}
+
+export const updateUser = async (
+  userId: number,
+  payload: {
+    email?: string
+    password?: string
+    first_name?: string
+    last_name?: string
+    sex?: number
+    birthday?: string
+    language?: string
+    phone?: string
+    is_active?: boolean
+    is_superuser?: boolean
+  }
+) => {
+  const { data } = await api.put(`/api/v1/user/id/${userId}`, payload)
+  return data
+}
+
+export const deleteUser = async (userId: number) => {
+  const { data } = await api.delete(`/api/v1/user/id/${userId}`)
+  return data
+}
+
 // -------- Dishes (Mon An) --------
 export const getDishes = async (current = 1, pageSize = 10) => {
   const { data } = await api.post('/api/v1/monan/all', { current, pageSize })
@@ -55,6 +94,11 @@ export const getMyDishes = async (current = 1, pageSize = 10) => {
   return data
 }
 
+export const getDish = async (id: number) => {
+  const { data } = await api.get(`/api/v1/monan/${id}`)
+  return data
+}
+
 export const createDish = async (dish: {
   ten_mon_an: string
   gia?: number
@@ -63,6 +107,26 @@ export const createDish = async (dish: {
   dia_chi?: string
 }) => {
   const { data } = await api.post('/api/v1/monan/add', dish)
+  return data
+}
+
+export const deleteDish = async (id: number) => {
+  // Backend DELETE route: /api/v1/monan/{id}
+  const { data } = await api.delete(`/api/v1/monan/${id}`)
+  return data
+}
+
+export const updateDish = async (
+  id: number,
+  dish: {
+    ten_mon_an: string
+    gia?: number | null
+    mo_ta?: string | null
+    hinh_anh?: string | null
+    dia_chi?: string | null
+  }
+) => {
+  const { data } = await api.put(`/api/v1/monan/${id}`, dish)
   return data
 }
 

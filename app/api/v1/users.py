@@ -1,6 +1,6 @@
 from app.db.session import get_db
 from app.schemas.user.users import ShowUser
-from app.schemas.user.users import UserCreate
+from app.schemas.user.users import UserCreate, UserUpdate
 from app.schemas.pagination import Pagination, PaginationShow
 
 from app.deps.auth import get_current_user_from_token
@@ -66,6 +66,35 @@ def get_me(user: User = Depends(get_current_user_from_token)):
     return user
 
 
+@user_router.get(
+    "/{username}",
+    response_model=ShowUser,
+    summary="Get user information by username (only for superuser)"
+)
+def get_user_info(
+    username: str,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db)
+):
+    # Check if current user is superuser
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not permitted!!!!"
+        )
+    
+    # Get user by username
+    user = get_user_by_username(username=username, db=db)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+    
+    return user
+
+
 @user_router.delete(
         "/{username}", 
         summary="Delete a user by username (only for superuser)"
@@ -88,3 +117,138 @@ def delete_user(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="You are not permitted!!!"
     )
+
+
+@user_router.put(
+    "/{username}",
+    response_model=ShowUser,
+    summary="Update a user by username (only for superuser)"
+)
+def update_user(
+    username: str,
+    user_update: UserUpdate,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db)
+):
+    # Check if current user is superuser
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not permitted!!!!"
+        )
+    
+    # Check if email is being updated and if it's already in use
+    if user_update.email:
+        existing_user = get_user_by_email(email=user_update.email, db=db)
+        if existing_user and existing_user.username != username:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already used by another user."
+            )
+    
+    # Update the user
+    updated_user = update_user_by_username(username=username, user_update=user_update, db=db)
+    
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+    
+    return updated_user
+
+
+@user_router.get(
+    "/id/{user_id}",
+    response_model=ShowUser,
+    summary="Get user information by ID (only for superuser)"
+)
+def get_user_info_by_id(
+    user_id: int,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db)
+):
+    # Check if current user is superuser
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not permitted!!!!"
+        )
+    
+    # Get user by ID
+    user = get_user_by_id(user_id=user_id, db=db)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+    
+    return user
+
+
+@user_router.delete(
+    "/id/{user_id}",
+    summary="Delete a user by ID (only for superuser)"
+)
+def delete_user_by_id_endpoint(
+    user_id: int,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db)
+):
+    # Check if current user is superuser
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not permitted!!!!"
+        )
+    
+    # Delete user by ID
+    user = delete_user_by_id(user_id=user_id, db=db)
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+    
+    return {"message": "Successfully deleted.", "detail": user}
+
+
+@user_router.put(
+    "/id/{user_id}",
+    response_model=ShowUser,
+    summary="Update a user by ID (only for superuser)"
+)
+def update_user_by_id_endpoint(
+    user_id: int,
+    user_update: UserUpdate,
+    current_user: User = Depends(get_current_user_from_token),
+    db: Session = Depends(get_db)
+):
+    # Check if current user is superuser
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not permitted!!!!"
+        )
+    
+    # Check if email is being updated and if it's already in use
+    if user_update.email:
+        existing_user = get_user_by_email(email=user_update.email, db=db)
+        if existing_user and existing_user.id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already used by another user."
+            )
+    
+    # Update the user
+    updated_user = update_user_by_id(user_id=user_id, user_update=user_update, db=db)
+    
+    if not updated_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found."
+        )
+    
+    return updated_user

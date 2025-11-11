@@ -64,17 +64,36 @@ def get_monan(
         )
     return monan
 
+@monan_router.put(
+        "/{id}", 
+        response_model=ShowMonAn,
+        summary="Update a mon an by id (owner or superuser)"
+)
+def update_monan(
+    id: int,
+    monan: MonAnCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user_from_token)
+):
+    monan = monan_repo.update_monan(id=id, monan=monan, username=current_user.username, db=db, is_superuser=current_user.is_superuser)
+    if not monan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="MonAn not found"
+        )
+    return monan
+
 @monan_router.delete(
         "/{id}", 
         response_model=ShowMonAn,
-        summary="Delete a mon an by id (only for owner of the 'mon an')"
+        summary="Delete a mon an by id (owner or superuser)"
 )
 def delete_monan(
     id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user_from_token)
 ):
-    monan = monan_repo.delete_monan(id=id, username=current_user.username, db=db)
+    monan = monan_repo.delete_monan(id=id, username=current_user.username, db=db, is_superuser=current_user.is_superuser)
     if not monan:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

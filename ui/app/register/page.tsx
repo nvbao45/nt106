@@ -28,7 +28,25 @@ export default function RegisterPage() {
       alert('Registration successful! Redirecting to login...')
       router.push('/login')
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Registration failed')
+      console.error('Registration error:', err)
+      let errorMsg = 'Registration failed'
+      if (err?.response?.data?.detail) {
+        const detail = err.response.data.detail
+        if (typeof detail === 'string') {
+          errorMsg = detail
+        } else if (Array.isArray(detail)) {
+          // Pydantic validation errors: extract field and message
+          errorMsg = detail.map((e: any) => {
+            const field = e.loc?.[e.loc.length - 1] || 'field'
+            return `${field}: ${e.msg}`
+          }).join(', ')
+        } else {
+          errorMsg = JSON.stringify(detail)
+        }
+      } else if (err?.message) {
+        errorMsg = err.message
+      }
+      setError(errorMsg)
     } finally {
       setLoading(false)
     }
